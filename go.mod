@@ -1,4 +1,4 @@
-module github.com/status-im/noise
+module github.com/waku-org/noise
 
 go 1.17
 
