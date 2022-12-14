@@ -28,6 +28,9 @@ type DHFunc interface {
 	// entropy.
 	GenerateKeypair(random io.Reader) (DHKey, error)
 
+	// GenerateKeypairFromPrivateKEy generates a keypair from a private key
+	GenerateKeyPairFromPrivateKey(privkey []byte) (DHKey, error)
+
 	// DH performs a Diffie-Hellman calculation between the provided private and
 	// public keys and returns the result.
 	DH(privkey, pubkey []byte) ([]byte, error)
@@ -104,7 +107,7 @@ var DH25519 DHFunc = dh25519{}
 
 type dh25519 struct{}
 
-func (dh25519) GenerateKeypair(rng io.Reader) (DHKey, error) {
+func (d dh25519) GenerateKeypair(rng io.Reader) (DHKey, error) {
 	privkey := make([]byte, 32)
 	if rng == nil {
 		rng = rand.Reader
@@ -112,6 +115,11 @@ func (dh25519) GenerateKeypair(rng io.Reader) (DHKey, error) {
 	if _, err := io.ReadFull(rng, privkey); err != nil {
 		return DHKey{}, err
 	}
+
+	return d.GenerateKeyPairFromPrivateKey(privkey)
+}
+
+func (d dh25519) GenerateKeyPairFromPrivateKey(privkey []byte) (DHKey, error) {
 	pubkey, err := curve25519.X25519(privkey, curve25519.Basepoint)
 	if err != nil {
 		return DHKey{}, err
